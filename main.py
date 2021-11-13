@@ -31,6 +31,7 @@ LMB = win32con.VK_LBUTTON
 RMB = win32con.VK_RBUTTON
 F4 = win32con.VK_F4
 F10 = win32con.VK_F10
+ENTER = win32con.VK_RETURN
 
 with open('settings') as json_file:
     data = json.load(json_file)
@@ -52,6 +53,7 @@ def give_time():
 def change_gun() -> None:
     global gun_type
     global timer
+    global gun_name
 
     KeyMin = 0
 
