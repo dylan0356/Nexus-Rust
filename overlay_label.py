@@ -5,7 +5,7 @@ import win32con
 
 
 class OverlayLabel:
-    def __init__(self, text="IPSUM DOLOREM", pos="BR"):
+    def __init__(self, text="IPSUM DOLOREM", pos="TL"):
         self.text = text
         self.pos = pos
         self.fg = "black"

@@ -37,6 +37,13 @@ F4 = win32con.VK_F4
 F10 = win32con.VK_F10
 ENTER = win32con.VK_RETURN
 
+overlay = OverlayLabel()
+overlay.set_size(30, 4)
+
+def start():
+    overlay = OverlayLabel()
+    overlay.set_size(30, 3)
+
 with open('settings') as json_file:
     data = json.load(json_file)
     sensitivity = float(data['sensitivity'])
@@ -59,16 +66,6 @@ def randomizer(range: float):
     random_num = random.uniform(1,10000)
     add =  random_num % int(range*2)
     return start+add
-    
-
-def on_press(key):
-    try: k = key.char
-    except: k = key.name 
-    if key == keyboard.Key.k:
-        gun_type = values.assualt_rifle
-        gun_name = 'Assault Rifle'
-        timer = get_tick(values.AssaultRifleRPM)
-        beep()
 
 class Timer():
 
@@ -98,6 +95,7 @@ def change_gun() -> None:
     global gun_type
     global timer
     global gun_name
+    global name_of_sight
 
     KeyMin = 0
 
@@ -167,6 +165,7 @@ def change_gun() -> None:
         print(f'Changed gun to {current_gun_name} with {name_of_sight}')
         beep()
     
+    construct_overlay(overlay,gun_name,gun_type)
 
 def get_tick(rpm):
     rps = rpm/60
@@ -185,6 +184,7 @@ def menu():
     print("0 - None")
     print("\nMade By Dylan")
     beep()
+    
 
 def iskeypressed():
     LeftClickKeyValue = win32api.GetAsyncKeyState(LMB) 
@@ -201,16 +201,6 @@ def ispressednumbar():
         print('No gun selected')
         beep()
         loop()
-
-def SmoothMove(x, y, time):
-    Timer.timer()
-
-    target = {x , y}
-    total_moved = {}
-
-    esalpsed = Timer.Elapsed()
-
-
 
 def mouse_move(x, y):
     global lost
@@ -266,19 +256,21 @@ def mousedown(gun_type,timer):
                 if not iskeypressed():
                     return
     
-def construct_overlay(overlay, weapons_list, current_weapon_index, no_recoil):
+def construct_overlay(overlay, gun_name, gun_type):
     recoil_data = "ON" if gun_type != 0 else "OFF"
     bg_data = "#acffac" if gun_type != 0 else "#ffacac"
     recoil_string = "NoRecoil: {}".format(recoil_data)
     weapon_string = "Weapon: {}".format(gun_name)
-    length = max(len(recoil_string), len(weapon_string))
-    overlay_string = "{}\n{}".format(recoil_string.ljust(length), weapon_string.ljust(length))
+    attachment_string = "Scope: {}".format(name_of_sight)
+    length = max(len(recoil_string), len(weapon_string), len(attachment_string))
+    #overlay_string = "{}\n{}".format(recoil_string.ljust(length), weapon_string.ljust(length), attachment_string.ljust(length))
+    overlay_string = f"\n{recoil_string.ljust(length)}\n{weapon_string.ljust(length)}\n{attachment_string.ljust(length)}"
     overlay.set_bg(bg_data)
     overlay.set_text(overlay_string)
+    
 
 def loop():
-    overlay = OverlayLabel()
-    overlay.set_size(20, 2)
+    
     while gun_type == 0:
         change_gun()
     while gun_type != 0:
@@ -288,6 +280,4 @@ def loop():
             mousedown(gun_type,timer)
 menu()
 loop()
-lis = keyboard.Listener(on_press=on_press)
-lis.start()
-lis.join()
+start()
