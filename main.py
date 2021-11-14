@@ -18,6 +18,7 @@ Y = 1
 
 gun_type = 0
 gun_name = 'None'
+name_of_sight = 'Iron'
 timer = 0
 smoothing = 5
 sensitivity = 0
@@ -28,6 +29,7 @@ smooth = 8
 maxRandom = 0.08
 minRandom = 0.01
 movementsPerShot = 4
+attachment = 0
 
 LMB = win32con.VK_LBUTTON
 RMB = win32con.VK_RBUTTON
@@ -51,6 +53,13 @@ def is_lmb_pressed():
 
 def give_time():
     return int(round(time.time() * 1000))
+
+def randomizer(range: float):
+    start = 100 - range
+    random_num = random.uniform(1,10000)
+    add =  random_num % int(range*2)
+    return start+add
+    
 
 def on_press(key):
     try: k = key.char
@@ -93,48 +102,71 @@ def change_gun() -> None:
     KeyMin = 0
 
     AssaultRifleKeyValue = win32api.GetAsyncKeyState(0x61)
-    if AssaultRifleKeyValue < KeyMin:
-        gun_type = values.assault_rifle
-        gun_name = 'Assault Rifle'
-        timer = get_tick(values.AssaultRifleRPM)
+    if AssaultRifleKeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
+        gun_type = values.Assault_Rifle_Iron
+        gun_name = 'Assault_Rifle'
+        timer = values.AssaultRifleTime
         print(f'Changed gun to {gun_name}')
         beep()
     LR300RifleKeyValue = win32api.GetAsyncKeyState(0x62)
-    if LR300RifleKeyValue < KeyMin:
+    if LR300RifleKeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
         gun_type = values.LR300Rifle
         gun_name = 'LR300'
-        timer = get_tick(values.LR300RifleRPM)
+        timer = values.LR300AssaultRifleTime
         print(f'Changed gun to {gun_name}')
         beep()
     ThompsonKeyValue = win32api.GetAsyncKeyState(0x63)
-    if ThompsonKeyValue < KeyMin:
+    if ThompsonKeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
         gun_type = values.Thompson
         gun_name = 'Thompson'
         timer = get_tick(values.ThompsonRPM)
         print(f'Changed gun to {gun_name}')
         beep()
     MP5KeyValue = win32api.GetAsyncKeyState(0x64)
-    if MP5KeyValue < KeyMin:
-        gun_type = values.MP5
-        gun_name = 'MP5A4'
-        timer = get_tick(values.MP5RPM)
+    if MP5KeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
+        gun_type = values.MP5_SMG_Iron
+        gun_name = 'MP5_SMG'
+        timer = values.MP5A4Time
         print(f'Changed gun to {gun_name}')
         beep()
     CustomSMGKeyValue = win32api.GetAsyncKeyState(0x65)
-    if CustomSMGKeyValue < KeyMin:
+    if CustomSMGKeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
         gun_type = values.CustomSMG
         gun_name = 'CustomSMG'
         timer = get_tick(values.CustomSMGRPM)
         print(f'Changed gun to {gun_name}')
         beep()
     M249KeyValue = win32api.GetAsyncKeyState(0x66)
-    if M249KeyValue < KeyMin:
+    if M249KeyValue < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
         gun_type = values.M249
         gun_name = 'M249'
         timer = get_tick(values.M249RPM)
         print(f'Changed gun to {gun_name}')
         beep()
-    return
+
+    current_gun_name = gun_name
+    iron = win32api.GetAsyncKeyState(0x67)
+    if iron < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
+        attachment = 0
+        gun_type = values.set_attachment_pattern(current_gun_name,attachment)
+        name_of_sight = 'Iron'
+        print(f'Changed gun to {current_gun_name} with {name_of_sight}')
+        beep()
+    holo = win32api.GetAsyncKeyState(0x68)
+    if holo < KeyMin and win32api.GetAsyncKeyState(0x11) < 0:
+        attachment = 1
+        gun_type = values.set_attachment_pattern(current_gun_name,attachment)
+        name_of_sight = 'Holo'
+        print(f'Changed gun to {current_gun_name} with {name_of_sight}')
+        beep()
+    eight = win32api.GetKeyState(0x69)
+    if eight < 0 and win32api.GetKeyState(0x11) < 0:
+        attachment = 2
+        gun_type = values.set_attachment_pattern(current_gun_name,attachment)
+        name_of_sight = '8x'
+        print(f'Changed gun to {current_gun_name} with {name_of_sight}')
+        beep()
+    
 
 def get_tick(rpm):
     rps = rpm/60
@@ -167,6 +199,7 @@ def ispressednumbar():
     if NumpadZeroKeyValue < 0:
         gun_type = 0
         print('No gun selected')
+        beep()
         loop()
 
 def SmoothMove(x, y, time):
@@ -198,12 +231,18 @@ def mousedown(gun_type,timer):
 
         if shot_index < len(gun_type) - 1:
             for recoilValue in gun_type:
+                
+                random_numX = random.uniform(0.93,1.08)
+                random_numY = random.uniform(0.93,1.08)
 
                 #randomRecoilX = random.uniform(recoilValue[X], recoilValue[Y] + maxRandom)
                 #randomRecoilY = random.uniform(recoilValue[Y], recoilValue[Y] + maxRandom)
 
-                RecoilX = recoilValue[X]
-                RecoilY = recoilValue[Y]
+                RecoilX = recoilValue[X] + random_numX
+                RecoilY = recoilValue[Y] + random_numY
+
+                #RecoilX = randomizer(RecoilX)
+                #RecoilY = randomizer(RecoilY)
 
                 realx = ( round( (RecoilX / 2 ) ) / sensitivity)
                 realy = ( round( (RecoilY / 2 ) ) / sensitivity)
@@ -212,6 +251,8 @@ def mousedown(gun_type,timer):
 
                 #smoothing function
                 for count in range(smooth):
+
+                    #smooth = randomizer(smooth)
 
                     xToMove = (realx / smooth)
                     yToMove = (realy / smooth)
