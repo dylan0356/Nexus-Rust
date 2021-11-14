@@ -9,12 +9,21 @@ import json
 import sys
 import threading
 import values
+import subprocess
 
 from pynput import keyboard
 from overlay_label import OverlayLabel
 
+hwid = str(str(subprocess.check_output('wmic csproduct get uuid')).strip().replace(r"\r", "").split(r"\n")[1].strip())
+
 X = 0
 Y = 1
+
+def printSlow(text):
+    for char in text:
+        print(char, end="")
+        sys.stdout.flush()
+        time.sleep(.1)
 
 gun_type = 0
 gun_name = 'None'
