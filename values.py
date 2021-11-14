@@ -1,12 +1,11 @@
 import json
+from math import sqrt
 
 X = 0
 Y = 1
 
-with open('settings') as json_file:
-    data = json.load(json_file)
-    sensitivity = float(data['sensitivity'])
-    fov = float(data['fov'])
+sensitivity = 0.3
+fov = 90
 
 def calculate(gunDelta: list) -> list:
     
@@ -19,8 +18,6 @@ def calculate(gunDelta: list) -> list:
 
     for count in range(len(gunDelta)):
 
-        
-        
         gunDeltaDeltaValue = gunDelta[count]
   
         currentX = gunDeltaDeltaValue[X]
@@ -46,6 +43,37 @@ def calculate(gunDelta: list) -> list:
     
     return NewGunList
 
+def control_times(gunDelta: list) -> list:
+
+    count = 0
+    control_times = []
+
+    last_shot_x = 0
+    last_shot_y = 0
+
+    for value in gunDelta:
+        
+        gunDeltaDeltaValue = gunDelta[count]
+
+        currentX = gunDeltaDeltaValue[X]
+        currentY = gunDeltaDeltaValue[Y]
+
+        deltaX = currentX - last_shot_x
+        deltaY = currentY - last_shot_y
+
+        animationTimeX = sqrt((deltaX * deltaX) + (deltaX * deltaX)) / 0.02
+        animationTimeY = sqrt((deltaY * deltaY) + (deltaY * deltaY)) / 0.02
+
+        control_times.append([animationTimeX, animationTimeY])
+        
+        last_shot_x = currentX
+        last_shot_y = currentY
+        
+        count += 1
+
+
+
+    return control_times
 
 guns=['AssaultRifle','LR300Rifle','Thompson','MP5A4','CustomSMG','M249']
 
@@ -83,4 +111,4 @@ M249RPM = 500
 M249MPS = 4
 M249 = calculate(M249Delta)
 
-
+assault_rifle = [[-38, 52.3906], [12, 46], [-43, 42], [-58, 37], [0, 34], [0, 28], [34.5, 25], [22.5, 26],[42.5, 18], [36, 10], [39, 15], [39, 18], [28, 18], [24, 28], [5, 29], [-18, 32], [-30, 33],[-34, 32], [-36, 29], [-43, 24], [-45, 17], [-45, 8], [-43, 5], [-28, 14], [-19, 21],[0, 25], [0, 28], [40, 28], [53, 26], [48, 15], [38, 21]]

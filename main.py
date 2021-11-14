@@ -4,11 +4,13 @@ import win32con
 import winsound
 import time
 import ctypes
+import ctypes.wintypes
 import json
 import sys
 import threading
 import values
 
+from pynput import keyboard
 from overlay_label import OverlayLabel
 
 X = 0
@@ -17,7 +19,7 @@ Y = 1
 gun_type = 0
 gun_name = 'None'
 timer = 0
-smooth = 5
+smoothing = 5
 sensitivity = 0
 fov = 0
 lost = 0
@@ -50,6 +52,39 @@ def is_lmb_pressed():
 def give_time():
     return int(round(time.time() * 1000))
 
+def on_press(key):
+    try: k = key.char
+    except: k = key.name 
+    if key == keyboard.Key.k:
+        gun_type = values.assualt_rifle
+        gun_name = 'Assault Rifle'
+        timer = get_tick(values.AssaultRifleRPM)
+        beep()
+
+class Timer():
+
+    def timer():
+        global starting_time
+        starting_time = ctypes.wintypes.LARGE_INTEGER()
+
+    def Elapsed():
+        kernel32 = ctypes.WinDLL('kernel32', use_last_error=True)
+
+        ending_time = ctypes.wintypes.LARGE_INTEGER()
+        elapsed_microseconds = ctypes.wintypes.LARGE_INTEGER()
+        frequency = ctypes.wintypes.LARGE_INTEGER()
+
+        kernel32.QueryPerformanceFrequency(ctypes.byref(frequency))
+        kernel32.QueryPerformanceCounter(ctypes.byref(starting_time))
+        
+        kernel32.QueryPerformanceCounter(ctypes.byref(ending_time))
+
+        elapsed_microseconds = ending_time.value - starting_time.value
+        elapsed_microseconds *= 1000000
+        elapsed_microseconds /= frequency.value
+
+        return elapsed_microseconds
+
 def change_gun() -> None:
     global gun_type
     global timer
@@ -57,41 +92,47 @@ def change_gun() -> None:
 
     KeyMin = 0
 
-    AssaultRifleKeyValue = win32api.GetKeyState(0x61)
+    AssaultRifleKeyValue = win32api.GetAsyncKeyState(0x61)
     if AssaultRifleKeyValue < KeyMin:
-        gun_type = values.AssaultRifle
+        gun_type = values.assault_rifle
         gun_name = 'Assault Rifle'
         timer = get_tick(values.AssaultRifleRPM)
+        print(f'Changed gun to {gun_name}')
         beep()
-    LR300RifleKeyValue = win32api.GetKeyState(0x62)
+    LR300RifleKeyValue = win32api.GetAsyncKeyState(0x62)
     if LR300RifleKeyValue < KeyMin:
         gun_type = values.LR300Rifle
         gun_name = 'LR300'
         timer = get_tick(values.LR300RifleRPM)
+        print(f'Changed gun to {gun_name}')
         beep()
-    ThompsonKeyValue = win32api.GetKeyState(0x63)
+    ThompsonKeyValue = win32api.GetAsyncKeyState(0x63)
     if ThompsonKeyValue < KeyMin:
         gun_type = values.Thompson
         gun_name = 'Thompson'
         timer = get_tick(values.ThompsonRPM)
+        print(f'Changed gun to {gun_name}')
         beep()
-    MP5KeyValue = win32api.GetKeyState(0x64)
+    MP5KeyValue = win32api.GetAsyncKeyState(0x64)
     if MP5KeyValue < KeyMin:
         gun_type = values.MP5
         gun_name = 'MP5A4'
         timer = get_tick(values.MP5RPM)
+        print(f'Changed gun to {gun_name}')
         beep()
-    CustomSMGKeyValue = win32api.GetKeyState(0x65)
+    CustomSMGKeyValue = win32api.GetAsyncKeyState(0x65)
     if CustomSMGKeyValue < KeyMin:
         gun_type = values.CustomSMG
         gun_name = 'CustomSMG'
         timer = get_tick(values.CustomSMGRPM)
+        print(f'Changed gun to {gun_name}')
         beep()
-    M249KeyValue = win32api.GetKeyState(0x66)
+    M249KeyValue = win32api.GetAsyncKeyState(0x66)
     if M249KeyValue < KeyMin:
         gun_type = values.M249
         gun_name = 'M249'
         timer = get_tick(values.M249RPM)
+        print(f'Changed gun to {gun_name}')
         beep()
     return
 
@@ -114,18 +155,29 @@ def menu():
     beep()
 
 def iskeypressed():
-    LeftClickKeyValue = win32api.GetKeyState(LMB) 
-    RightClickKeyValue = win32api.GetKeyState(RMB)
+    LeftClickKeyValue = win32api.GetAsyncKeyState(LMB) 
+    RightClickKeyValue = win32api.GetAsyncKeyState(RMB)
     if LeftClickKeyValue < 0 and RightClickKeyValue < 0:
         return True
 
 def ispressednumbar():
     global gun_type
 
-    NumpadZeroKeyValue = win32api.GetKeyState(0x60)
+    NumpadZeroKeyValue = win32api.GetAsyncKeyState(0x60)
     if NumpadZeroKeyValue < 0:
         gun_type = 0
+        print('No gun selected')
         loop()
+
+def SmoothMove(x, y, time):
+    Timer.timer()
+
+    target = {x , y}
+    total_moved = {}
+
+    esalpsed = Timer.Elapsed()
+
+
 
 def mouse_move(x, y):
     global lost
@@ -147,11 +199,14 @@ def mousedown(gun_type,timer):
         if shot_index < len(gun_type) - 1:
             for recoilValue in gun_type:
 
-                randomRecoilX = random.uniform(recoilValue[X], recoilValue[Y] + maxRandom)
-                randomRecoilY = random.uniform(recoilValue[Y], recoilValue[Y] + maxRandom)
+                #randomRecoilX = random.uniform(recoilValue[X], recoilValue[Y] + maxRandom)
+                #randomRecoilY = random.uniform(recoilValue[Y], recoilValue[Y] + maxRandom)
 
-                realx = ( round( (randomRecoilX / 2 ) ) / sensitivity)
-                realy = ( round( (randomRecoilY / 2 ) ) / sensitivity)
+                RecoilX = recoilValue[X]
+                RecoilY = recoilValue[Y]
+
+                realx = ( round( (RecoilX / 2 ) ) / sensitivity)
+                realy = ( round( (RecoilY / 2 ) ) / sensitivity)
 
                 start_time = give_time()
 
@@ -166,7 +221,9 @@ def mousedown(gun_type,timer):
                     time.sleep(shot_tick / smooth)
                 
                 end_time = give_time()
-            shot_index += 1
+                shot_index += 1
+                if not iskeypressed():
+                    return
     
 def construct_overlay(overlay, weapons_list, current_weapon_index, no_recoil):
     recoil_data = "ON" if gun_type != 0 else "OFF"
@@ -184,9 +241,12 @@ def loop():
     while gun_type == 0:
         change_gun()
     while gun_type != 0:
-        gun_type()
+        change_gun()
         ispressednumbar()
         if iskeypressed():
             mousedown(gun_type,timer)
 menu()
 loop()
+lis = keyboard.Listener(on_press=on_press)
+lis.start()
+lis.join()
