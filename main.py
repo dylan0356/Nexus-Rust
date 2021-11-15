@@ -23,7 +23,9 @@ def printSlow(text):
     for char in text:
         print(char, end="")
         sys.stdout.flush()
-        time.sleep(.1)
+        time.sleep(.4)
+
+#printSlow("Loading\n")
 
 gun_type = 0
 gun_name = 'None'
