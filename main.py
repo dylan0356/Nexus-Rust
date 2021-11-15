@@ -16,6 +16,8 @@ from overlay_label import OverlayLabel
 
 hwid = str(str(subprocess.check_output('wmic csproduct get uuid')).strip().replace(r"\r", "").split(r"\n")[1].strip())
 
+print(hwid)
+
 X = 0
 Y = 1
 
@@ -239,8 +241,8 @@ def mousedown(gun_type,timer):
                 #randomRecoilX = random.uniform(recoilValue[X], recoilValue[Y] + maxRandom)
                 #randomRecoilY = random.uniform(recoilValue[Y], recoilValue[Y] + maxRandom)
 
-                RecoilX = recoilValue[X] + random_numX
-                RecoilY = recoilValue[Y] + random_numY
+                RecoilX = recoilValue[X] * random_numX
+                RecoilY = recoilValue[Y] * random_numY
 
                 #RecoilX = randomizer(RecoilX)
                 #RecoilY = randomizer(RecoilY)
